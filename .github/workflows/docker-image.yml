@@ -32,7 +32,10 @@ jobs:
     # Build Docker image and tag with commit hash and version (if available)
     - name: Build and tag Docker image
       run: |
-        IMAGE_NAME="ghcr.io/${{ github.repository }}/my-image"
+        REPO_NAME="${{ github.repository }}"
+        REPO_NAME_LOWERCASE=$(echo "$REPO_NAME" | tr '[:upper:]' '[:lower:]')
+
+        IMAGE_NAME="ghcr.io/$REPO_NAME_LOWERCASE/my-image"
         COMMIT_SHA=$(git rev-parse --short HEAD)
         
         # If the commit is tagged, use the tag as the version
