@@ -6,18 +6,14 @@
   - You can customize the branches and tag patterns according to your needs.
 - Checkout Code:
   - This step checks out your repository’s code, allowing the workflow to access the source code and Dockerfile.
-
 - Set up Docker Buildx (optional but recommended for multi-platform builds):
   - This allows building Docker images on multiple platforms (like linux/arm64 or linux/amd64).
-
 - Log in to Docker Hub (or GHCR):
   - The action logs in to Docker Hub using your Docker credentials stored as GitHub secrets (DOCKER_USERNAME and DOCKER_PASSWORD).
   - If you're using GitHub Container Registry (GHCR), you can use ghcr.io as the registry in the docker push commands instead of Docker Hub.
-
 - Build and Tag the Docker Image:
   - The image is tagged with the short commit hash ($COMMIT_SHA) and, if available, the tag from GitHub ($TAG). If the commit isn’t tagged, the image is tagged with latest.
   - docker build -t $IMAGE_NAME:$COMMIT_SHA -t $IMAGE_NAME:$TAG . will build the Docker image with both the commit hash and the tag as tags.
-
 - Push the Docker Image:
   - The image is pushed to the specified registry with both the commit hash and tag.
 
