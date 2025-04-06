@@ -1,12 +1,23 @@
 name: Build and Push Docker Image
 
 on:
+  # Trigger on pull request to the `main` branch
+  pull_request:
+    branches:
+      - main
+
+  # Trigger on release events (e.g., creating or publishing a release)
+  release:
+    types:
+      - created
+      - published
+
+  # Trigger on push to any branch
   push:
     branches:
-      - '**'  # Trigge on pushes to any branch
-      - 'release/*'
+      - '**'  # Wildcard to match any branch
     tags:
-      - 'v*'  # Trigger on tags like v1.0, v2.0, etc.
+      - '*'  # Wildcard to match any tag
 
 jobs:
   build:
@@ -42,8 +53,10 @@ jobs:
         # If the commit is tagged, use the tag as the version
         if [[ $GITHUB_REF == refs/tags/* ]]; then
           TAG=$(echo $GITHUB_REF | sed 's/refs\/tags\///')
-        else
+        elif [[ $GITHUB_REF == refs/heads/main ]]; then
           TAG="latest"
+        else
+          TAG=""
         fi
 
 
@@ -53,22 +66,33 @@ jobs:
 
 
         # Build the image for the commit sha
-        docker build \
+        if [[ $TAG == ""]]; then
+          docker build \
+            --tag $IMAGE_NAME:$COMMIT_SHA \
+            --tag $IMAGE_NAME:$TAG \
+            --push $IMAGE_NAME:$COMMIT_SHA \
+            .
+        else
+          docker build \
           --tag $IMAGE_NAME:$COMMIT_SHA \
-          --tag $IMAGE_NAME:$TAG .
+          --tag $IMAGE_NAME:$TAG \
+          --push $IMAGE_NAME:$COMMIT_SHA \
+          .
+        fi
 
-    # Create and push the image to GHCR
-    - name: Create and push tag if branch is main
-      if: github.ref == 'refs/heads/main'  # Only run this step if the branch is main
-      run: |
-        echo "you are on the main branch"
+    # # Create and push the image to GHCR
+    # - name: Create and push tag if branch is main
+    #   if: github.ref == 'refs/heads/main'  # Only run this step if the branch is main
+    #   # set the tag to latest
+    #   run: |
+    #     echo "you are on the main branch"
 
-    # Push the Docker image to Docker Hub or GHCR
-    - name: Push Docker image
-      run: |
-        echo "IMAGE_NAME=$IMAGE_NAME"
-        echo "COMMIT_SHA=$COMMIT_SHA"
-        echo "TAG=$TAG"
+    # # Push the Docker image to Docker Hub or GHCR
+    # - name: Push Docker image
+    #   run: |
+    #     echo "IMAGE_NAME=$IMAGE_NAME"
+    #     echo "COMMIT_SHA=$COMMIT_SHA"
+    #     echo "TAG=$TAG"
 
-        docker push $IMAGE_NAME:$COMMIT_SHA
-        docker push $IMAGE_NAME:$TAG
+    #     docker push $IMAGE_NAME:$COMMIT_SHA
+    #     docker push $IMAGE_NAME:$TAG
