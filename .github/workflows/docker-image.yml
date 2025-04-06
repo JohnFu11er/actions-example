@@ -70,13 +70,11 @@ jobs:
           docker build \
             --tag $IMAGE_NAME:$COMMIT_SHA \
             --tag $IMAGE_NAME:$TAG \
-            --push $IMAGE_NAME:$COMMIT_SHA \
             .
         else
           docker build \
           --tag $IMAGE_NAME:$COMMIT_SHA \
           --tag $IMAGE_NAME:$TAG \
-          --push $IMAGE_NAME:$COMMIT_SHA \
           .
         fi
 
