@@ -17,6 +17,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    env:
+      IMAGE_REGITRY: ghrc.io
+      TAG: ''
+      IMAGE_NAME: ''
+      COMMIT_SHA: ''
+
     steps:
     # Check out the repository
     - name: Checkout code
@@ -37,7 +43,7 @@ jobs:
     - name: Set varialbes
       run: |
         # Assign variables
-        IMAGE_REGISTRY=ghrc.io
+        IMAGE_REGISTRY="${{ env.IMAGE_REGITRY }}"
         REPO_NAME="${{ github.repository }}"
         REPO_NAME_LOWERCASE=$(echo "$REPO_NAME" | tr '[:upper:]' '[:lower:]')
         IMAGE_NAME="$IMAGE_REGISTRY/$REPO_NAME_LOWERCASE/my-image"
@@ -60,13 +66,36 @@ jobs:
         echo "TAG=$TAG" >> $GITHUB_ENV
 
 
-    - name: Build and push Docker image
-      if: env.TAG == ''
+    - name: Build and push Docker image if there is a TAG
+      if: env.TAG != ''
+      uses: docker/build-push-action@v3
+      with:
+        context: .
+        push: true
+        tags: "ghcr.io/${{ env.IMAGE_NAME }}:${{ env.TAG }}"
+        platforms: linux/amd64,linux/arm64
+      env:
+        DOCKER_BUILDKIT: 1
+
+
+    - name: Build and push Docker image if there is no TAG and branch is Main
+      if: env.TAG == '' && github.ref == 'refs/heads/main'
       uses: docker/build-push-action@v3
       with:
         context: .
         push: true
         tags: "ghcr.io/${{ env.IMAGE_NAME }}:latest"
+        platforms: linux/amd64,linux/arm64
+      env:
+        DOCKER_BUILDKIT: 1
+
+    - name: Build and push Docker image if there is no TAG and branch is not Main
+      if: env.TAG == '' && github.ref != 'refs/heads/main'
+      uses: docker/build-push-action@v3
+      with:
+        context: .
+        push: true
+        tags: "ghcr.io/${{ env.IMAGE_NAME }}:${{ env.COMMIT_SHA }}"
         platforms: linux/amd64,linux/arm64
       env:
         DOCKER_BUILDKIT: 1
