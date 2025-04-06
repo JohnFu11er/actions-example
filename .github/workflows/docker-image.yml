@@ -69,21 +69,23 @@ jobs:
           docker buildx build \
             --platform linux/amd64 \
             --tag $IMAGE_NAME:$COMMIT_SHA \
+            --push \
             .
         else
           docker buildx build \
             --platform linux/amd64 \
             --tag $IMAGE_NAME:$COMMIT_SHA \
             --tag $IMAGE_NAME:$TAG \
+            --push \
             .
         fi
 
 
     # Push the Docker image to GitHub Container Registry
-    - name: Push Docker image to GHCR
-      run: |
-        docker push $IMAGE_NAME:$COMMIT_SHA
+    # - name: Push Docker image to GHCR
+    #   run: |
+    #     docker push $IMAGE_NAME:$COMMIT_SHA
 
-        if [[ $TAG != "" ]]; then
-          docker push $IMAGE_NAME:$TAG
-        fi
+    #     if [[ $TAG != "" ]]; then
+    #       docker push $IMAGE_NAME:$TAG
+    #     fi
