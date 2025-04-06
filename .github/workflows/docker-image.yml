@@ -62,5 +62,5 @@ jobs:
         echo "COMMIT_SHA=$COMMIT_SHA"
         echo "TAG=$TAG"
 
-        docker push ghcr.io/$IMAGE_NAME:$COMMIT_SHA
-        docker push ghcr.io/$IMAGE_NAME:$TAG
+        docker push $IMAGE_NAME:$COMMIT_SHA
+        docker push $IMAGE_NAME:$TAG
