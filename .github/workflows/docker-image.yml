@@ -47,18 +47,17 @@ jobs:
         echo "TAG=$TAG" >> $GITHUB_ENV
 
         # Build the image using Buildx
-        docker buildx build \
-          --platform linux/amd6, linux/arm64 \
+        docker build \
           --tag $IMAGE_NAME:$COMMIT_SHA \
           --tag $IMAGE_NAME:$TAG .
 
 
     # Push the Docker image to Docker Hub or GHCR
-    # - name: Push Docker image
-    #   run: |
-    #     echo "IMAGE_NAME=$IMAGE_NAME"
-    #     echo "COMMIT_SHA=$COMMIT_SHA"
-    #     echo "TAG=$TAG"
+    - name: Push Docker image
+      run: |
+        echo "IMAGE_NAME=$IMAGE_NAME"
+        echo "COMMIT_SHA=$COMMIT_SHA"
+        echo "TAG=$TAG"
 
-    #     docker push ghcr.io/$IMAGE_NAME:$COMMIT_SHA
-    #     docker push ghcr.io/$IMAGE_NAME:$TAG
+        docker push ghcr.io/$IMAGE_NAME:$COMMIT_SHA
+        docker push ghcr.io/$IMAGE_NAME:$TAG
