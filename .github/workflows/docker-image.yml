@@ -79,7 +79,7 @@ jobs:
     #     DOCKER_BUILDKIT: 1
 
 
-    - name: Build and push Docker image if branch is Main
+    - name: Build and push Docker image if there is a TAG or the branch is Main
       if: env.TAG != '' || github.ref == 'refs/heads/main'
       uses: docker/build-push-action@v3
       with:
