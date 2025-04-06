@@ -37,14 +37,18 @@ jobs:
     # Build Docker image and tag with commit hash and version (if available)
     - name: Build and tag Docker image
       run: |
+
+        # Assign variables
+        IMAGE_REGISTRY=ghrc.io
         REPO_NAME="${{ github.repository }}"
         REPO_NAME_LOWERCASE=$(echo "$REPO_NAME" | tr '[:upper:]' '[:lower:]')
-
-        IMAGE_NAME="ghcr.io/$REPO_NAME_LOWERCASE/my-image"
+        IMAGE_NAME="$IMAGE_REGISTRY/$REPO_NAME_LOWERCASE/my-image"
         COMMIT_SHA=$(git rev-parse --short HEAD)
         
 
-        # If the commit is tagged, use the tag as the version
+        # If the commit is tagged, use the tag as the version,
+        # unless there is no tag, then use the "latest" if on main branch.
+        # Otherwise do not set an additional tag
         if [[ $GITHUB_REF == refs/tags/* ]]; then
           TAG=$(echo $GITHUB_REF | sed 's/refs\/tags\///')
         elif [[ $GITHUB_REF == refs/heads/main ]]; then
@@ -54,31 +58,30 @@ jobs:
         fi
 
 
+        # Persist the variables to the next stage in the workflow
         echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_ENV
         echo "COMMIT_SHA=$COMMIT_SHA" >> $GITHUB_ENV
         echo "TAG=$TAG" >> $GITHUB_ENV
 
 
-        # Build the image for the commit sha
+        # Build the image for the commit sha and tag(if defined)
         if [[ $TAG == "" ]]; then
-          docker build \
+          docker buildx build \
+            --platform linux/amd64 \
             --tag $IMAGE_NAME:$COMMIT_SHA \
             .
         else
-          docker build \
+          docker buildx build \
+            --platform linux/amd64 \
             --tag $IMAGE_NAME:$COMMIT_SHA \
             --tag $IMAGE_NAME:$TAG \
             .
         fi
 
 
-    # Push the Docker image to Docker Hub or GHCR
-    - name: Push Docker image
+    # Push the Docker image to GitHub Container Registry
+    - name: Push Docker image to GHCR
       run: |
-        echo "IMAGE_NAME=$IMAGE_NAME"
-        echo "COMMIT_SHA=$COMMIT_SHA"
-        echo "TAG=$TAG"
-
         docker push $IMAGE_NAME:$COMMIT_SHA
 
         if [[ $TAG != "" ]]; then
