@@ -17,9 +17,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    env:
-      TAG: ''
-
     steps:
     # Check out the repository
     - name: Checkout code
@@ -50,11 +47,11 @@ jobs:
         # unless there is no tag, then use the "latest" if on main branch.
         # Otherwise do not set an additional tag
         if [[ $GITHUB_REF == refs/tags/* ]]; then
-          env.TAG=$(echo $GITHUB_REF | sed 's/refs\/tags\///')
+          TAG=$(echo $GITHUB_REF | sed 's/refs\/tags\///')
         elif [[ $GITHUB_REF == refs/heads/main ]]; then
-          env.TAG="latest"
+          TAG="latest"
         else
-          env.TAG=''
+          TAG=''
         fi
 
         # Persist the variables to the next stage in the workflow
