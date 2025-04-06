@@ -69,15 +69,15 @@ jobs:
           docker buildx build \
             --platform linux/amd64 \
             --tag $IMAGE_NAME:$COMMIT_SHA \
-            --push \
-            .
+            --file Dockerfile .
+            --push
         else
           docker buildx build \
             --platform linux/amd64 \
             --tag $IMAGE_NAME:$COMMIT_SHA \
             --tag $IMAGE_NAME:$TAG \
-            --push \
-            .
+            --file Dockerfile .
+            --push
         fi
 
 
