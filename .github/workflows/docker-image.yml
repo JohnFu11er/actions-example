@@ -72,9 +72,9 @@ jobs:
             .
         else
           docker build \
-          --tag $IMAGE_NAME:$COMMIT_SHA \
-          --tag $IMAGE_NAME:$TAG \
-          .
+            --tag $IMAGE_NAME:$COMMIT_SHA \
+            --tag $IMAGE_NAME:$TAG \
+            .
         fi
 
 
