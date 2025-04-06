@@ -50,8 +50,7 @@ jobs:
         docker buildx build \
           --platform linux/amd6, linux/arm64 \
           --tag $IMAGE_NAME:$COMMIT_SHA \
-          --tag $IMAGE_NAME:$TAG \
-          --push .
+          --tag $IMAGE_NAME:$TAG .
 
 
     # Push the Docker image to Docker Hub or GHCR
