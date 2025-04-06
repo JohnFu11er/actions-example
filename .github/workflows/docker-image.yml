@@ -69,7 +69,6 @@ jobs:
         if [[ $TAG == "" ]]; then
           docker build \
             --tag $IMAGE_NAME:$COMMIT_SHA \
-            --tag $IMAGE_NAME:$TAG \
             .
         else
           docker build \
