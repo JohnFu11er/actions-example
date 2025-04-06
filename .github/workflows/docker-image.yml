@@ -17,6 +17,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    env:
+      IMAGE_REGITRY: ghrc.io
+      TAG: ''
+      IMAGE_NAME: ''
+      COMMIT_SHA: ''
+
     steps:
     # Check out the repository
     - name: Checkout code
@@ -34,53 +40,114 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
-    # Build Docker image and tag with commit hash and version (if available)
-    - name: Build and tag Docker image
+    - name: Set varialbes
       run: |
+        # Assign variables
+        IMAGE_REGISTRY="${{ env.IMAGE_REGITRY }}"
         REPO_NAME="${{ github.repository }}"
         REPO_NAME_LOWERCASE=$(echo "$REPO_NAME" | tr '[:upper:]' '[:lower:]')
-
-        IMAGE_NAME="ghcr.io/$REPO_NAME_LOWERCASE/my-image"
+        IMAGE_NAME="$IMAGE_REGISTRY/$REPO_NAME_LOWERCASE/my-image"
         COMMIT_SHA=$(git rev-parse --short HEAD)
-        
 
-        # If the commit is tagged, use the tag as the version
+        # If the commit is tagged, use the tag as the version,
+        # unless there is no tag, then use the "latest" if on main branch.
+        # Otherwise do not set an additional tag
         if [[ $GITHUB_REF == refs/tags/* ]]; then
           TAG=$(echo $GITHUB_REF | sed 's/refs\/tags\///')
         elif [[ $GITHUB_REF == refs/heads/main ]]; then
           TAG="latest"
         else
-          TAG=""
+          TAG=''
         fi
 
-
+        # Persist the variables to the next stage in the workflow
         echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_ENV
         echo "COMMIT_SHA=$COMMIT_SHA" >> $GITHUB_ENV
         echo "TAG=$TAG" >> $GITHUB_ENV
 
 
-        # Build the image for the commit sha
-        if [[ $TAG == "" ]]; then
-          docker build \
-            --tag $IMAGE_NAME:$COMMIT_SHA \
-            .
-        else
-          docker build \
-            --tag $IMAGE_NAME:$COMMIT_SHA \
-            --tag $IMAGE_NAME:$TAG \
-            .
-        fi
+    - name: Build and push Docker image if there is a TAG
+      if: env.TAG != ''
+      uses: docker/build-push-action@v3
+      with:
+        context: .
+        push: true
+        tags: "ghcr.io/${{ env.IMAGE_NAME }}:${{ env.TAG }}"
+        platforms: linux/amd64,linux/arm64
+      env:
+        DOCKER_BUILDKIT: 1
 
 
-    # Push the Docker image to Docker Hub or GHCR
-    - name: Push Docker image
-      run: |
-        echo "IMAGE_NAME=$IMAGE_NAME"
-        echo "COMMIT_SHA=$COMMIT_SHA"
-        echo "TAG=$TAG"
+    - name: Build and push Docker image if there is no TAG and branch is Main
+      if: env.TAG == '' && github.ref == 'refs/heads/main'
+      uses: docker/build-push-action@v3
+      with:
+        context: .
+        push: true
+        tags: "ghcr.io/${{ env.IMAGE_NAME }}:latest"
+        platforms: linux/amd64,linux/arm64
+      env:
+        DOCKER_BUILDKIT: 1
 
-        docker push $IMAGE_NAME:$COMMIT_SHA
+    - name: Build and push Docker image if there is no TAG and branch is not Main
+      if: env.TAG == '' && github.ref != 'refs/heads/main'
+      uses: docker/build-push-action@v3
+      with:
+        context: .
+        push: true
+        tags: "ghcr.io/${{ env.IMAGE_NAME }}:${{ env.COMMIT_SHA }}"
+        platforms: linux/amd64,linux/arm64
+      env:
+        DOCKER_BUILDKIT: 1
 
-        if [[ $TAG != "" ]]; then
-          docker push $IMAGE_NAME:$TAG
-        fi
+    # # Build Docker image and tag with commit hash and version (if available)
+    # - name: Build and tag Docker image
+    #   run: |
+
+    #     # Assign variables
+    #     IMAGE_REGISTRY=ghrc.io
+    #     REPO_NAME="${{ github.repository }}"
+    #     REPO_NAME_LOWERCASE=$(echo "$REPO_NAME" | tr '[:upper:]' '[:lower:]')
+    #     IMAGE_NAME="$IMAGE_REGISTRY/$REPO_NAME_LOWERCASE/my-image"
+    #     COMMIT_SHA=$(git rev-parse --short HEAD)
+        
+
+    #     # If the commit is tagged, use the tag as the version,
+    #     # unless there is no tag, then use the "latest" if on main branch.
+    #     # Otherwise do not set an additional tag
+    #     if [[ $GITHUB_REF == refs/tags/* ]]; then
+    #       TAG=$(echo $GITHUB_REF | sed 's/refs\/tags\///')
+    #     elif [[ $GITHUB_REF == refs/heads/main ]]; then
+    #       TAG="latest"
+    #     else
+    #       TAG=""
+    #     fi
+
+
+    #     # Persist the variables to the next stage in the workflow
+    #     echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_ENV
+    #     echo "COMMIT_SHA=$COMMIT_SHA" >> $GITHUB_ENV
+    #     echo "TAG=$TAG" >> $GITHUB_ENV
+
+
+    #     # Build the image for the commit sha and tag(if defined)
+    #     if [[ $TAG == "" ]]; then
+    #       docker build \
+    #         --platform linux/amd64 \
+    #         --tag $IMAGE_NAME:$COMMIT_SHA
+    #     else
+    #       docker build \
+    #         --platform linux/amd64 \
+    #         --tag $IMAGE_NAME:$COMMIT_SHA \
+    #         --tag $IMAGE_NAME:$TAG 
+    #     fi
+
+
+    # # Push the Docker image to GitHub Container Registry
+    # - name: Push Docker image to GHCR
+    #   run: |
+    #     docker push $IMAGE_NAME:$COMMIT_SHA
+
+    #     if [[ $TAG != "" ]]; then
+    #       docker push $IMAGE_NAME:$TAG
+    #     fi
