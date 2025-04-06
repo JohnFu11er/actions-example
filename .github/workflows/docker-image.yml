@@ -18,10 +18,11 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      IMAGE_REGITRY: ghrc.io
       TAG: ''
       IMAGE_NAME: ''
       COMMIT_SHA: ''
+      IMAGE_REGITRY: ghrc.io
+      PLATFORMS: 'linux/amd64,linux/arm64'
 
     steps:
     # Check out the repository
@@ -66,26 +67,26 @@ jobs:
         echo "TAG=$TAG" >> $GITHUB_ENV
 
 
-    - name: Build and push Docker image if there is a TAG
-      if: env.TAG != ''
+    # - name: Build and push Docker image if there is a TAG
+    #   if: env.TAG != ''
+    #   uses: docker/build-push-action@v3
+    #   with:
+    #     context: .
+    #     push: true
+    #     tags: "ghcr.io/${{ env.IMAGE_NAME }}:${{ env.TAG }}"
+    #     platforms: linux/amd64,linux/arm64
+    #   env:
+    #     DOCKER_BUILDKIT: 1
+
+
+    - name: Build and push Docker image if branch is Main
+      if: env.TAG != '' || github.ref == 'refs/heads/main'
       uses: docker/build-push-action@v3
       with:
         context: .
         push: true
         tags: "ghcr.io/${{ env.IMAGE_NAME }}:${{ env.TAG }}"
-        platforms: linux/amd64,linux/arm64
-      env:
-        DOCKER_BUILDKIT: 1
-
-
-    - name: Build and push Docker image if there is no TAG and branch is Main
-      if: env.TAG == '' && github.ref == 'refs/heads/main'
-      uses: docker/build-push-action@v3
-      with:
-        context: .
-        push: true
-        tags: "ghcr.io/${{ env.IMAGE_NAME }}:latest"
-        platforms: linux/amd64,linux/arm64
+        platforms: ${{ env.PLATFORMS }}
       env:
         DOCKER_BUILDKIT: 1
 
@@ -96,7 +97,7 @@ jobs:
         context: .
         push: true
         tags: "ghcr.io/${{ env.IMAGE_NAME }}:${{ env.COMMIT_SHA }}"
-        platforms: linux/amd64,linux/arm64
+        platforms: ${{ env.PLATFORMS }}
       env:
         DOCKER_BUILDKIT: 1
 
