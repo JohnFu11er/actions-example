@@ -6,12 +6,6 @@ on:
     branches:
       - main
 
-  # Trigger on release events (e.g., creating or publishing a release)
-  release:
-    types:
-      - created
-      - published
-
   # Trigger on push to any branch
   push:
     branches:
