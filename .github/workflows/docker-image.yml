@@ -77,19 +77,16 @@ jobs:
           .
         fi
 
-    # # Create and push the image to GHCR
-    # - name: Create and push tag if branch is main
-    #   if: github.ref == 'refs/heads/main'  # Only run this step if the branch is main
-    #   # set the tag to latest
-    #   run: |
-    #     echo "you are on the main branch"
 
-    # # Push the Docker image to Docker Hub or GHCR
-    # - name: Push Docker image
-    #   run: |
-    #     echo "IMAGE_NAME=$IMAGE_NAME"
-    #     echo "COMMIT_SHA=$COMMIT_SHA"
-    #     echo "TAG=$TAG"
+    # Push the Docker image to Docker Hub or GHCR
+    - name: Push Docker image
+      run: |
+        echo "IMAGE_NAME=$IMAGE_NAME"
+        echo "COMMIT_SHA=$COMMIT_SHA"
+        echo "TAG=$TAG"
 
-    #     docker push $IMAGE_NAME:$COMMIT_SHA
-    #     docker push $IMAGE_NAME:$TAG
+        docker push $IMAGE_NAME:$COMMIT_SHA
+
+        if [[ $TAG == "" ]]; then
+          docker push $IMAGE_NAME:$TAG
+        fi
