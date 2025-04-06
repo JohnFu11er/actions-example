@@ -32,7 +32,7 @@ jobs:
     # Build Docker image and tag with commit hash and version (if available)
     - name: Build and tag Docker image
       run: |
-        IMAGE_NAME=mydockerhubuser/my-image
+        IMAGE_NAME=johnfu11er/my-image
         COMMIT_SHA=$(git rev-parse --short HEAD)
         
         # If the commit is tagged, use the tag as the version
