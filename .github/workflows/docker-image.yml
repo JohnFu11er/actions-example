@@ -87,6 +87,6 @@ jobs:
 
         docker push $IMAGE_NAME:$COMMIT_SHA
 
-        if [[ $TAG == "" ]]; then
+        if [[ $TAG != "" ]]; then
           docker push $IMAGE_NAME:$TAG
         fi
